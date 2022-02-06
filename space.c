@@ -1,5 +1,5 @@
 static char *version = "vv space invaders 3M";
-
+/*T. Barake, Feb-2022			cleanup, curson removal*/
 /*T. Barake, Nov-2021			recompiled under VS*/
 /*T. Barake, Dec-82				turbo C version    */
 
@@ -59,11 +59,6 @@ void _setcursortype(int i) { ShowConsoleCursor(i); }
 void textattr(int attr) {}
 void clrscr() {};
 
-
-
-
-
-
 void gotoxy(int x, int y)
 {
 	COORD coord;
@@ -71,7 +66,7 @@ void gotoxy(int x, int y)
 	coord.Y = y;
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
-		 
+
 void delay(int i) { Sleep(i); }
 
 void window(int a, int b, int c, int d) {
@@ -79,7 +74,7 @@ void window(int a, int b, int c, int d) {
 	HWND console = GetConsoleWindow();
 	RECT r;
 	GetWindowRect(console, &r); //stores the console's current dimensions
-	MoveWindow(console, r.left, r.top, (c-a)*9, (d-b)*16, TRUE); // width, height
+	MoveWindow(console, r.left, r.top, (c - a) * 9, (d - b) * 16, TRUE); // width, height
 }
 
 
@@ -115,8 +110,6 @@ void window(int a, int b, int c, int d) {
 
 #define        INV_INCR        1
 #define        EMPTY           -1
-#define        YES             1
-#define        NO              0
 #define        LEFT            0
 #define        RIGHT           1
 
@@ -221,7 +214,7 @@ char mystscore[] = "<    >";
 char nmyst[] = "      ";
 
 /*#ifdef HYPERION*/
-int sound = YES;
+int sound = TRUE;
 int freq = 0;
 /*#endif*/
 
@@ -272,16 +265,19 @@ int main(int argc, char *argv[])
 	_setcursortype(_NOCURSOR);
 #ifdef HYPERION
 	mode(0x82);                                   /*set hyperion mode*/
-	if (argc >= 2) sound = NO;                    /*optional sound effects*/
+	if (argc >= 2) sound = FALSE;                    /*optional sound effects*/
 #endif
 
-	for (i = 0; i < MAX_COL; blank[i++] = ' ');
+	//for (i = 0; i < MAX_COL; blank[i++] = ' ')
+	//	;
+	delay(1000);
 	blank[MAX_COL] = '\0';
 
 	code = 0x61;                                    /*must be 'a'*/
 	displaystr("IN:VADERS 1.01 ");
-	for (play = 0; play < 0xFFFF; play++);
-
+	//for (play = 0; play < 0xFFFF; play++)
+	//	;
+	delay(1000);
 	/*
 	for (play=0;signature[play]!=0xff;play++)
 	 if ( (char)(signature[play]^code) != decoy[play])
@@ -297,11 +293,9 @@ int main(int argc, char *argv[])
 	  }
 	*/
 
-	do
-	{
+	do {
 		idle_screen();
-		while (no_of_guns > 0)
-		{
+		while (no_of_guns > 0) {
 			draw_score();
 			gun_sound();
 			gtc();
@@ -321,13 +315,13 @@ int main(int argc, char *argv[])
 				move_gun();
 			gun_sound();
 			move_invaders();
-			if (dead == YES || gun_delay > 0)
+			if (dead || gun_delay > 0)
 				refresh_gun();
 			gun_sound();
 			delay(70);
 		}
 		play = play_again();
-	} while (play == YES);
+	} while (play);
 	_setcursortype(_NORMALCURSOR);
 	return 0;
 }/*main*/
@@ -361,7 +355,7 @@ void move_invaders()
 	char *neg0, *pos0, *neg1, *pos1, c;                   /*invader image*/
 
 #ifdef HYPERION
-	if (sound == YES)
+	if (sound)
 	{
 		for (i = 0; i < INV_DUR; i++)
 		{
@@ -375,12 +369,10 @@ void move_invaders()
 	/*check if invaders have reached the boundary*/
 
 	do
-		if (++cur_row == INV_ROWS)
-		{
+		if (++cur_row == INV_ROWS) {
 			cur_row = 0;
 			image ^= 1;                                     /*flip the image */
-			if (direction == LEFT)
-			{
+			if (direction == LEFT) {
 				for (i = 0; i < GUN_LIN; i++)
 					if ((c = screen[i][L_EDGE]) != MIS_CHAR && !isblank(c) && c != SHOT_CHAR)
 					{
@@ -389,7 +381,7 @@ void move_invaders()
 						break;
 					}
 			}
-			else
+			else {
 				for (i = 0; i < GUN_LIN; i++)
 					if ((c = screen[i][R_EDGE]) != MIS_CHAR && !isblank(c) && c != SHOT_CHAR)
 					{
@@ -397,13 +389,12 @@ void move_invaders()
 						direction = LEFT;            /*change direction*/
 						break;
 					}
+			}
 		}
 	while (alien[cur_row].no_inv == 0);
 
-	if (dead == YES)                 /*after down movement*/
+	if (dead)                 /*after down movement*/
 		return;
-
-
 
 	aptr = &alien[cur_row];
 
@@ -415,23 +406,19 @@ void move_invaders()
 	pos0 = aptr->tpos_image[image];
 	pos1 = aptr->bpos_image[image];
 
-	if (direction == LEFT)
-	{
+	if (direction == LEFT) {
 		ptr = &aptr->node[0];
 		incr = 1;
 		i_incr = -INV_INCR;
 	}
-	else
-	{
+	else {
 		ptr = &aptr->node[INV_COLS - 1];
 		incr = -1;
 		i_incr = INV_INCR;
 	}
 
-	for (i = 0; i < INV_COLS; i++)
-	{
-		if (ptr->col[LEFT] != EMPTY)                     /*there is an invader there*/
-		{
+	for (i = 0; i < INV_COLS; i++) {
+		if (ptr->col[LEFT] != EMPTY) {            /*there is an invader there*/
 			scrout(0, top_lin, ptr->col[LEFT], neg0, ATTR_N);   /*move invader*/
 			scrout(0, bot_lin, ptr->col[LEFT], neg1, ATTR_N);
 			strcpy(&screen[top_lin][ptr->col[LEFT]], neg0);  /*fixup screen image*/
@@ -466,20 +453,17 @@ void move_missile()
 
 	/*process invader missiles*/
 
-	for (i = 0; i < MAX_MISSILES; i++)
-	{
+	for (i = 0; i < MAX_MISSILES; i++) {
 		lin = &missile[i].lin;
 		col = &missile[i].col;
 
-		if (screen[*lin][*col] == EXP_CHAR)     /*a splat to be deleted*/
-		{
+		if (screen[*lin][*col] == EXP_CHAR) {   /*a splat to be deleted*/
 			screen[*lin][*col] = ' ';
 			scrout(0, *lin, *col, " ", ATTR_N);
 			*lin = EMPTY;
 		}
 
-		if (*lin == EMPTY)
-		{
+		if (*lin == EMPTY) {
 			generate_new_missile(i);
 			continue;
 		}
@@ -490,14 +474,12 @@ void move_missile()
 		scrout(0, *lin, *col, " ", ATTR_N);
 		(*lin) += 1;
 		/*beyond block lin*/
-		if (*lin > GUN_LIN + 3)
-		{
+		if (*lin > GUN_LIN + 3) {
 			*lin = EMPTY;                                          /*off limits*/
 			continue;
 		}
 
-		if (isblank(screen[*lin][*col]))                     /*no hit*/
-		{
+		if (isblank(screen[*lin][*col])) {                    /*no hit*/
 			screen[*lin][*col] = MIS_CHAR;
 			scrout(0, *lin, *col, str, ATTR_N);
 			continue;
@@ -505,34 +487,31 @@ void move_missile()
 		else
 			scrout(0, *lin, *col, " ", ATTR_N);                      /*default*/
 
-		if (*lin >= BLOCK_LIN)                               /*beyond gun*/
-			if (*lin >= GUN_LIN)                                /*beyond last lin*/
-			{
-				dead = YES;
+		if (*lin >= BLOCK_LIN)							         /*beyond gun*/
+			if (*lin >= GUN_LIN) {                                /*beyond last lin*/
+				dead = TRUE;
 				no_of_guns--;
 				screen[*lin][*col] = ' ';
 				*lin = EMPTY;
 				continue;
 			}
-			else
-			{
+			else {
 				screen[*lin][*col] = ' ';
 				*lin = EMPTY;
 				continue;                                             /*block is hit*/
 			}
 
-		if (screen[*lin][*col] == SHOT_CHAR)
-		{
-			char str2[2];
-			str2[0] = EXP_CHAR;
-			str2[1] = '\0';
+			if (screen[*lin][*col] == SHOT_CHAR) {
+				char str2[2];
+				str2[0] = EXP_CHAR;
+				str2[1] = '\0';
 
-			screen[*lin][*col] = EXP_CHAR;
-			scrout(0, *lin, *col, str2, ATTR_N);
-			gun_shot.lin = EMPTY;
-			gun_shot.col = EMPTY;
-			continue;
-		}
+				screen[*lin][*col] = EXP_CHAR;
+				scrout(0, *lin, *col, str2, ATTR_N);
+				gun_shot.lin = EMPTY;
+				gun_shot.col = EMPTY;
+				continue;
+			}
 	}
 }
 
@@ -555,14 +534,13 @@ void gun_missile()
 
 	if (gun_shot.lin == EMPTY)
 		if (mchk())
-			if (SHOOT == (c = gtch()))
-			{
+			if (SHOOT == (c = gtch())) {
 				int i, j;
 				gun_shot.lin = GUN_LIN - 1;
 				gun_shot.col = gun_col;
 
 #ifdef HYPERION
-				if (sound == YES)                      /*make sounds*/
+				if (sound)                      /*make sounds*/
 					freq = SHOT_DUR;
 #endif
 
@@ -578,8 +556,7 @@ void gun_missile()
 	screen[gun_shot.lin + 1][gun_shot.col] = ' ';
 	scrout(0, gun_shot.lin + 1, gun_shot.col, " ", ATTR_N);
 
-	if (gun_shot.lin <= 0)                                   /*boundary*/
-	{
+	if (gun_shot.lin <= 0) {                                  /*boundary*/
 		gun_shot.lin = EMPTY;
 		return;
 	}
@@ -587,8 +564,7 @@ void gun_missile()
 first_time:
 
 
-	if (isblank(screen[gun_shot.lin][gun_shot.col]))      /*check for no hits*/
-	{
+	if (isblank(screen[gun_shot.lin][gun_shot.col])) {    /*check for no hits*/
 		screen[gun_shot.lin][gun_shot.col] = SHOT_CHAR;
 		scrout(0, gun_shot.lin, gun_shot.col, str, ATTR_N);
 		gun_shot.lin--;                                       /*rewrite shot*/
@@ -598,16 +574,14 @@ first_time:
 	/*something has been hit at next position*/
 
 	if (gun_shot.lin >= BLOCK_LIN                           /*a block*/
-		&&screen[gun_shot.lin][gun_shot.col] == BLOCK_CHAR)
-	{
+		&&screen[gun_shot.lin][gun_shot.col] == BLOCK_CHAR) {
 		screen[gun_shot.lin][gun_shot.col] = ' ';
 		scrout(0, gun_shot.lin, gun_shot.col, " ", ATTR_N);
 		gun_shot.lin = EMPTY;                                  /*kill missile*/
 		return;
 	}
 	/*could be missile*/
-	if (screen[gun_shot.lin][gun_shot.col] == MIS_CHAR)
-	{
+	if (screen[gun_shot.lin][gun_shot.col] == MIS_CHAR) {
 		char str2[2];
 		str2[0] = EXP_CHAR;
 		str2[1] = '\0';
@@ -623,12 +597,10 @@ first_time:
 	for (i = 0; i < INV_ROWS; i++)                             /*for all rows*/
 		if (alien[i].no_inv > 0 &&                            /*possible hit*/
 			(gun_shot.lin == alien[i].bot_lin || gun_shot.lin == alien[i].top_lin))
-			for (j = 0; j < INV_COLS; j++)                           /*scan for hit*/
-			{
+			for (j = 0; j < INV_COLS; j++) {                    /*scan for hit*/
 				p = &alien[i].node[j];
 				if (p->col[LEFT] != EMPTY&& p->col[LEFT] <= gun_shot.col &&
-					gun_shot.col <= p->col[RIGHT]) /*a hit*/
-				{
+					gun_shot.col <= p->col[RIGHT]) {   /*a hit*/
 					int  *l, *r;
 
 					l = &p->col[LEFT];
@@ -650,6 +622,16 @@ first_time:
 
 /**/
 
+void draw_gun(char *gunImg[])
+{
+	int i;
+	for (i = 0; i < 3; i++) {
+		strcpy(&screen[GUN_LIN + i][gun_col - i], gunImg[i]);
+		scrout(0, GUN_LIN + i, gun_col - i, gunImg[i], ATTR_N);
+	}
+}
+
+
 void move_gun()
 /*scans keyboard for key pressed to check if gun is to be moved*/
 /*moves the gun if necessary                                   */
@@ -658,45 +640,29 @@ void move_gun()
 	char c;
 
 	if (mchk())
-		if ((c = gtch()) == MOVE_LEFT || c == MOVE_RIGHT)
-		{
-			int move = NO;
+		if ((c = gtch()) == MOVE_LEFT || c == MOVE_RIGHT) {
+			int move = FALSE;
 
-			switch (c)
-			{
+			switch (c) {
 			case MOVE_LEFT:
-				if ((gun_col - 2) > L_EDGE)
-				{
-					for (i = 0; i < 3; i++)
-					{
-						strcpy(&screen[GUN_LIN + i][gun_col - i], ngun_image[i]);
-						scrout(0, GUN_LIN + i, gun_col - i, ngun_image[i], ATTR_N);
-					}
+				if ((gun_col - 2) > L_EDGE) {
+					draw_gun(ngun_image);
 					gun_col--;
-					move = YES;
+					move = TRUE;
 				}
 				break;
 
 			case MOVE_RIGHT:
-				if ((gun_col + 2) < R_EDGE)
-				{
-					for (i = 0; i < 3; i++)
-					{
-						strcpy(&screen[GUN_LIN + i][gun_col - i], ngun_image[i]);
-						scrout(0, GUN_LIN + i, gun_col - i, ngun_image[i], ATTR_N);
-					}
+				if ((gun_col + 2) < R_EDGE) {
+					draw_gun(ngun_image);
 					gun_col++;
-					move = YES;
+					move = TRUE;
 				}
 				break;
 			}
 
-			if (move == YES)
-				for (i = 0; i < 3; i++)                           /*redraw gun*/
-				{
-					strcpy(&screen[GUN_LIN + i][gun_col - i], gun_image[i]);
-					scrout(0, GUN_LIN + i, gun_col - i, gun_image[i], ATTR_N);
-				}
+			if (move)
+				draw_gun(gun_image);
 		}
 }
 
@@ -712,13 +678,13 @@ void refresh_gun()
 
 	if (dead)
 	{
-		dead = NO;
+		dead = FALSE;
 		gun_delay = GUN_DELAY;
 		for (i = 0; i < 3; i++)                     /*explode current gun if any*/
 			scrout(0, GUN_LIN + i, gun_col - i, gun_image[i], ATTR_B | ATTR_R);
 
 #ifdef HYPERION
-		if (sound == YES)
+		if (sound)
 			for (i = 0; i < EXP_FREQ; i++)
 			{
 				int j;
@@ -730,8 +696,7 @@ void refresh_gun()
 		for (j = 0; j < 0xFFFF; j++);               /*loop a while*/
 #endif
 
-		for (i = 0; i < 3; i++)                     /*erase gun*/
-		{
+		for (i = 0; i < 3; i++) {                   /*erase gun*/
 			scrout(0, GUN_LIN + i, gun_col - i, ngun_image[i], ATTR_N);
 			strcpy(&screen[GUN_LIN + i][gun_col - i], ngun_image[i]);
 		}
@@ -741,8 +706,7 @@ void refresh_gun()
 
 	--gun_delay;
 
-	if (no_of_guns > 0 && gun_delay == 0)
-	{
+	if (no_of_guns > 0 && gun_delay == 0) {
 		gun_col = L_EDGE + 2;                      /*starting position for gun*/
 		for (i = 0; i < 3; i++)                      /*redraw gun*/
 		{
@@ -751,8 +715,7 @@ void refresh_gun()
 		}
 	}
 
-	if (gun_shot.lin != EMPTY&&gun_shot.col != EMPTY)
-	{
+	if (gun_shot.lin != EMPTY&&gun_shot.col != EMPTY) {
 		scrout(0, gun_shot.lin + 1, gun_shot.col, " ", ATTR_N);
 		screen[gun_shot.lin + 1][gun_shot.col] = ' ';
 	}
@@ -778,26 +741,27 @@ int play_again()
 	scrout(1, 12, 0, str, ATTR_D);
 	scrout(1, 23, 0, "Play Again ?", ATTR_D | ATTR_B);
 
-	do c = getch(); while (c != 'Y'&&c != 'y'&&c != 'N'&&c != 'n');
+	do
+		c = getch();
+	while (c != 'Y'&&c != 'y'&&c != 'N'&&c != 'n');
 
 	putch(c);
 
-	switch (c)
-	{
+	switch (c) {
 	case 'n':
 	case 'N':
 		for (i = 0; i < 25; i++)
 			scrout(0, i, 0, blank, ATTR_N);
 		/* set_page(0);*/
-		return(NO);
+		return FALSE;
 		break;
 
 	case 'y':
 	case 'Y':
-		return(YES);
+		return TRUE;
 		break;
 	}
-	return (NO);
+	return (FALSE);
 }
 
 /**/
@@ -829,14 +793,12 @@ void draw_score()
 	str[1] = '\0';
 	str[0] = SHOT_CHAR;
 
-	if (score - offset >= FREE_GUN)
-	{
+	if (score - offset >= FREE_GUN) {
 		no_of_guns++;
 		offset += FREE_GUN;
 	}
 
-	if (score != old_score || no_of_guns != old_guns)
-	{
+	if (score != old_score || no_of_guns != old_guns) {
 		old_score = score;
 
 		for (i = 0; i < (max(old_guns, no_of_guns)); i++)
@@ -861,7 +823,7 @@ void displaystr(char *str)
 /*decodes string signature and prints it*/
 {
 	unsigned int i;
-	
+
 	for (i = 0; str[i] != 0; i++)
 		putch(str[i]);
 	for (i = 0; signature[i] != 0xFF; i++)
@@ -896,8 +858,8 @@ void idle_screen()
 
 	putch(getch());
 
-	dead = NO;
-	play = YES;
+	dead = FALSE;
+	play = TRUE;
 	no_of_guns = 3;
 	mdelay = mmdelay;
 
@@ -926,13 +888,11 @@ void generate_new_missile(int i)
 	k = (rnd & 0x06) >> 1;                            /*take middle bits*/
 
 label0:
-	switch (k)
-	{
+	switch (k) {
 	case 0:                                       /*shoot from first row, front*/
 		for (l = 0; l < INV_ROWS; l++)
 			if (alien[l].no_inv > 0) break;              /*find bottom row*/
-		for (c = 0; c < INV_COLS; c++)
-		{
+		for (c = 0; c < INV_COLS; c++) {
 			p = &alien[l].node[c];
 			if (p->col[LEFT] != EMPTY) break;   /*first from left*/
 		}
@@ -943,8 +903,7 @@ label0:
 	case 1:
 		for (l = 0; l < INV_ROWS; l++)
 			if (alien[l].no_inv > 0) break;             /*find bottom row*/
-		for (c = INV_COLS - 1; c >= 0; c--)
-		{
+		for (c = INV_COLS - 1; c >= 0; c--) {
 			p = &alien[l].node[c];
 			if (p->col[LEFT] != EMPTY) break; /*first from right*/
 		}
@@ -957,12 +916,10 @@ label0:
 	case 3:
 	{
 		char s;
-		for (l = GUN_LIN - 1; l >= 0; l--)                     /*start at gun*/
-		{
+		for (l = GUN_LIN - 1; l >= 0; l--) {                  /*start at gun*/
 			s = screen[l][gun_col + skew];
 			if (!isblank(s) && (s != BLOCK_CHAR) && (s != SHOT_CHAR) && (s != MIS_CHAR)
-				&& (s != EXP_CHAR))
-			{
+				&& (s != EXP_CHAR)) {
 				pr->lin = l + 1;
 				pr->col = gun_col + skew;
 				return;
@@ -984,8 +941,7 @@ void move_down()
 	struct invader *iptr;
 
 
-	if (down_count != 0)
-	{
+	if (down_count != 0) {
 		down_count--;
 		return;
 	}
@@ -993,18 +949,15 @@ void move_down()
 		down_count = DOWN_DELAY;
 
 	for (r = 0; r < INV_ROWS; r++)
-
-		if (alien[r].no_inv > 0)
-		{
+		if (alien[r].no_inv > 0) {
 			rptr = &alien[r];
 			otl = rptr->top_lin;
 			obl = rptr->bot_lin;
 			tl = rptr->top_lin += 1;
 			bl = rptr->bot_lin += 1;
 
-			if (bl >= GUN_LIN)              /*aliens have invaded */
-			{
-				dead = YES;
+			if (bl >= GUN_LIN) {          /*aliens have invaded */
+				dead = TRUE;
 				no_of_guns = 0;               /*game over */
 				return;
 			}
@@ -1014,12 +967,10 @@ void move_down()
 			p0 = rptr->tpos_image[image];
 			p1 = rptr->bpos_image[image];
 
-			for (c = 0; c < INV_COLS; c++)
-			{
+			for (c = 0; c < INV_COLS; c++) {
 				iptr = &rptr->node[c];
 
-				if (iptr->col[LEFT] != EMPTY)
-				{
+				if (iptr->col[LEFT] != EMPTY) {
 					/*erase existing invader*/
 
 					scrout(0, otl, iptr->col[LEFT], n0, ATTR_N);
@@ -1065,8 +1016,7 @@ void init_screen()
 
 	/*blank out the screen*/
 
-	for (l = 0; l < MAX_LIN; l++)
-	{
+	for (l = 0; l < MAX_LIN; l++) {
 		scrout(0, l, 0, blank, ATTR_N);
 		for (c = 0; c < MAX_COL; c++)
 			screen[l][c] = ' ';
@@ -1097,13 +1047,11 @@ void init_screen()
 	alien[1].no_inv = INV_COLS;
 
 	for (j = 0; j < 2; j++)
-		for (i = 0; i < INV_COLS; i++)
-		{
+		for (i = 0; i < INV_COLS; i++) {
 			p = &alien[j].node[i];
 			p->col[LEFT] = i * 7 + (7 - inval) / 2 + (MAX_COL / INV_COLS) / 2;
 			p->col[RIGHT] = p->col[LEFT] + inval - 1;
-			for (k = 0; k < inval; k++)
-			{
+			for (k = 0; k < inval; k++) {
 				screen[alien[j].top_lin][k + p->col[LEFT]] = inva1a[k];
 				screen[alien[j].bot_lin][k + p->col[LEFT]] = inva2a[k];
 			}
@@ -1134,13 +1082,11 @@ void init_screen()
 	alien[3].no_inv = INV_COLS;
 
 	for (j = 2; j < 4; j++)
-		for (i = 0; i < INV_COLS; i++)
-		{
+		for (i = 0; i < INV_COLS; i++) {
 			p = &alien[j].node[i];
 			p->col[LEFT] = i * 7 + (7 - invbl) / 2 + (MAX_COL / INV_COLS) / 2;
 			p->col[RIGHT] = p->col[LEFT] + invbl - 1;
-			for (k = 0; k < invbl; k++)
-			{
+			for (k = 0; k < invbl; k++) {
 				screen[alien[j].top_lin][k + p->col[LEFT]] = invb1a[k];
 				screen[alien[j].bot_lin][k + p->col[LEFT]] = invb2a[k];
 			}
@@ -1160,8 +1106,7 @@ void init_screen()
 	alien[4].no_inv = INV_COLS;
 
 	j = 4;
-	for (i = 0; i < INV_COLS; i++)
-	{
+	for (i = 0; i < INV_COLS; i++) {
 		p = &alien[j].node[i];
 		p->col[LEFT] = i * 7 + (7 - invcl) / 2 + (MAX_COL / INV_COLS) / 2;
 		p->col[RIGHT] = p->col[LEFT] + invcl - 1;
@@ -1179,8 +1124,7 @@ void init_screen()
 			for (j = 0; j < 10; j++)            /*10 chars each*/
 				screen[BLOCK_LIN + i][k + j] = block_image[i][j];
 
-	for (i = 0; i < MAX_LIN - 1; i++)
-	{
+	for (i = 0; i < MAX_LIN - 1; i++) {
 		screen[i][MAX_COL] = '\0';                      /*end of string*/
 		scrout(0, i, 0, &screen[i][0], ATTR_N);           /*draw screen*/
 	}
