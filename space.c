@@ -1,5 +1,5 @@
 static char *version = "vv space invaders 3M";
-/*T. Barake, Feb-2022			cleanup, curson removal*/
+/*T. Barake, Feb-2022			cleanup, cursor removal*/
 /*T. Barake, Nov-2021			recompiled under VS*/
 /*T. Barake, Dec-82				turbo C version    */
 
@@ -15,12 +15,13 @@ static char *version = "vv space invaders 3M";
 
 /*macros*/
 
-#define       inv_missiles() (mdelay=((mdelay)?(mdelay-1):(move_missile(),mmdelay)))
-#define        isblank(c) ( ((c) == ' ') || ((c) == '\0'))
-#define gtc()  if(_kbhit()) oldc=(oldc==(ooc=getch())?'\0':ooc);else oldc='\0'
-#define        gtch()  (oldc)
-#define        mchk()  (oldc=='\0'?0:1)
-#define        gun_sound() (sound && freq > 0 ? gun_noise():0)
+#define		inv_missiles() (mdelay=((mdelay)?(mdelay-1):(move_missile(),mmdelay)))
+#define		isblank(c) ( ((c) == ' ') || ((c) == '\0'))
+#define		gtc()  if(_kbhit()) oldc=(oldc==(ooc=getch())?'\0':ooc);else oldc='\0'
+#define		gtch()  (oldc)
+#define		mchk()  (oldc=='\0'?0:1)
+#define		gun_sound() (sound && freq > 0 ? gun_noise():0)
+
 //#define        max(a,b)  ((a)>(b)?(a):(b))
 /*constants*/
 
@@ -53,6 +54,7 @@ void ShowConsoleCursor(int showFlag)
 	cursorInfo.bVisible = showFlag; // set the cursor visibility
 	SetConsoleCursorInfo(out, &cursorInfo);
 }
+
 void _setcursortype(int i) { ShowConsoleCursor(i); }
 
 //dummies
@@ -76,8 +78,6 @@ void window(int a, int b, int c, int d) {
 	GetWindowRect(console, &r); //stores the console's current dimensions
 	MoveWindow(console, r.left, r.top, (c - a) * 9, (d - b) * 16, TRUE); // width, height
 }
-
-
 
 #ifdef HYPERION
 
