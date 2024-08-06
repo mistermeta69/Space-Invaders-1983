@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 {
 	int i;
 
-	window(1, 1, 80, 25);
+	window(0, 0, 80, 25);
 	clrscr();
 	_setcursortype(_NOCURSOR);
 #ifdef HYPERION

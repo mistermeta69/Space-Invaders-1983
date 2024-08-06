@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "SPACETC.C": "cpp",
+        "cstdint": "c"
+    }
+}
